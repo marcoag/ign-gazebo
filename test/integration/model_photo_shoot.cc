@@ -35,7 +35,7 @@ TEST(ModelPhotoShootTest, ModelPhotoShootLoad)
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/examples/worlds/model_photo_shoot.sdf";
+    "/test/worlds/model_photo_shoot_box.sdf";
   serverConfig.SetSdfFile(sdfFile);
   Server server(serverConfig);
 
@@ -44,22 +44,23 @@ TEST(ModelPhotoShootTest, ModelPhotoShootLoad)
   server.Run(true, iters50, false);
 
   // Create and populate scene
-  ignition::rendering::ScenePtr scene =
-    ignition::rendering::sceneFromFirstRenderEngine();
+  ignition::rendering::RenderEngine *engine = rendering::engine("ogre2");
+
+  ignition::rendering::ScenePtr scene = engine->SceneById(0);
   ignition::rendering::VisualPtr root = scene->RootVisual();
 
-  // Create camera
-  ignition::rendering::CameraPtr camera = scene->CreateCamera("camera");
-  camera->SetLocalPosition(0.0, 0.0, 0.0);
-  camera->SetLocalRotation(0.0, 0.0, 0.0);
-  camera->SetImageWidth(960);
-  camera->SetImageHeight(540);
-  camera->SetImageFormat(ignition::rendering::PF_R8G8B8);
-  camera->SetHFOV(1.047);
-  camera->SetNearClipPlane(0.1);
-  camera->SetFarClipPlane(100);
-  root->AddChild(camera);
+  // Get camera
+  std::cout << scene->NodeCount() << std::endl;
+  for (unsigned int i = 0; i < scene->NodeCount(); ++i)
+  {
+    auto camera = std::dynamic_pointer_cast<ignition::rendering::Camera>(
+        scene->NodeByIndex(i));
+    if (nullptr != camera && camera->Name() == "photo_shoot::link::camera")
+    {
 
-  auto cameraImage = camera->CreateImage();
-  camera->Capture(cameraImage);
+
+      auto cameraImage = camera->CreateImage();
+      camera->Capture(cameraImage);
+    }
+  }
 }
